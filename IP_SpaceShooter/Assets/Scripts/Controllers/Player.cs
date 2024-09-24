@@ -10,8 +10,7 @@ public class Player : MonoBehaviour
     public GameObject bombPrefab;
     public Transform bombsTransform;
     public float movementSpeed = 0f;
-    public float stoppingSpeed = 0f;
-    float maxMovementSpeed = 10f;
+    float maxMovementSpeed = 5f;
     float acceleration = 2f;
     float deacceleration = -2f;
 
@@ -29,32 +28,21 @@ public class Player : MonoBehaviour
             // Increase acceleration.
             if (movementSpeed < maxMovementSpeed)
             {
-                stoppingSpeed = 0f;
                 movementSpeed += acceleration * Time.deltaTime;
                 transform.position = transform.position + new Vector3(horizontalInput * movementSpeed * Time.deltaTime, verticalInput * movementSpeed * Time.deltaTime, 0);
-                stoppingSpeed = movementSpeed;
             }
             // Once the player has hit top speed, continue moving at top speed.
             if (movementSpeed >= maxMovementSpeed)
             {
-                stoppingSpeed = 0f;
                 movementSpeed = maxMovementSpeed;
                 transform.position = transform.position + new Vector3(horizontalInput * movementSpeed * Time.deltaTime, verticalInput * movementSpeed * Time.deltaTime, 0);
-                stoppingSpeed = movementSpeed;
             }
         }
         else
         {
             // Begin to decelerate.
-            if (stoppingSpeed > 0f)
-            {
-                movementSpeed = 0f;
-                float lingeringHorizontalInput = horizontalInput;
-                float lingeringVerticalInput = verticalInput;
-                
-                stoppingSpeed += deacceleration * Time.deltaTime;
-                transform.position = transform.position + new Vector3(horizontalInput * stoppingSpeed * Time.deltaTime, verticalInput * stoppingSpeed * Time.deltaTime, 0);
-            }
+                movementSpeed += deacceleration * Time.deltaTime; 
+                transform.position = transform.position + new Vector3(horizontalInput * movementSpeed * Time.deltaTime, verticalInput * movementSpeed * Time.deltaTime, 0);
         }
 
         
