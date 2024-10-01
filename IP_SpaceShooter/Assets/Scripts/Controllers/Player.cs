@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -16,8 +17,14 @@ public class Player : MonoBehaviour
     public float maxDetectionRange;
     public float radarLength;
 
+    public int circlePoints;
+    public float radius;
+    public int[] anglesList;
+    public Vector3[] circleVectors;
+
     void Update()
     {
+        EnemyRadar(radius, circlePoints);
         PlayerMovement();
         DetectAsteroids(maxDetectionRange, asteroidTransforms);
     }
@@ -67,6 +74,20 @@ public class Player : MonoBehaviour
 
                 Debug.DrawLine(startPoint, endPoint, Color.green);
             }
+        }
+    }
+
+    public void EnemyRadar(float radius, int circlePoints)
+    {
+        anglesList = new int[circlePoints];
+
+        for (int i = 0; i < circlePoints; i++)
+        {
+            anglesList[i] = 360 / circlePoints;
+            float endPointX = Mathf.Cos(anglesList[i] * Mathf.Deg2Rad);
+            float endPointY = Mathf.Sin(anglesList[i] * Mathf.Deg2Rad);
+            Vector3 endingPoint = new Vector3(endPointX, endPointY) * radius + transform.position;
+            Debug.DrawLine(transform.position, endingPoint, Color.red);
         }
     }
 
