@@ -9,7 +9,7 @@ public class Player : MonoBehaviour
     public List<Transform> asteroidTransforms;
     public Transform enemyTransform;
     public GameObject bombPrefab;
-    public Transform bombsTransform;
+    public GameObject powerupPrefab;
     public float movementSpeed = 0f;
     float maxMovementSpeed = 5f;
     float acceleration = 2f;
@@ -18,15 +18,24 @@ public class Player : MonoBehaviour
     public float radarLength;
 
     public int circlePoints;
+    public int numberOfPowerups;
     public float radius;
     public int[] anglesList;
+    public int[] powerupsAnglesList;
+    public Vector3[] powerupsAnglesList2;
     public Vector3[] circleVectors;
+
+
 
     void Update()
     {
         EnemyRadar(radius, circlePoints);
         PlayerMovement();
         DetectAsteroids(maxDetectionRange, asteroidTransforms);
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            SpawnPowerups(radius, numberOfPowerups);
+        }
     }
     public void PlayerMovement()
     {
@@ -89,6 +98,24 @@ public class Player : MonoBehaviour
             Vector3 endingPoint = new Vector3(endPointX, endPointY) * radius + transform.position;
             Debug.DrawLine(transform.position, endingPoint, Color.red);
         }
+    }
+
+    public void SpawnPowerups(float radius, int numberOfPowerups)
+    {
+        powerupsAnglesList = new int[numberOfPowerups];
+
+        for (int i = 0; i < numberOfPowerups; i++)
+        {
+            powerupsAnglesList[i] = 360 / numberOfPowerups;
+            float endPointX = Mathf.Cos(powerupsAnglesList[i] * Mathf.Deg2Rad);
+            float endPointY = Mathf.Sin(powerupsAnglesList[i] * Mathf.Deg2Rad);
+            powerupsAnglesList2[i] = new Vector3(endPointX, endPointY) * radius + transform.position;
+            for (int j = 0; j < numberOfPowerups; j++)
+            {
+                Instantiate(powerupPrefab, powerupsAnglesList2[i], Quaternion.identity);
+            }
+        }
+
     }
 
 }
