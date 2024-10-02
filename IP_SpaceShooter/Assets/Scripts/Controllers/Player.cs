@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using Unity.Plastic.Newtonsoft.Json.Bson;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -12,7 +13,6 @@ public class Player : MonoBehaviour
     public GameObject powerupPrefab;
     public float movementSpeed = 0f;
     float maxMovementSpeed = 5f;
-    float acceleration = 2f;
     float deacceleration = -2f;
     public float maxDetectionRange;
     public float radarLength;
@@ -25,17 +25,85 @@ public class Player : MonoBehaviour
     public Vector3[] powerupsAnglesList2;
     public Vector3[] circleVectors;
 
+    // Keely's Movement
 
+    // Basic Character Movement: Velocity
+    public float maxSpeed;
+    private Vector3 currentVelocity;
+
+    // Acceleration
+    public float accelerationTime;
+    private float acceleration;
+
+    // Deceleration
+    public float decelerationTime;
+    private float deceleration;
+
+    void Start()
+    {
+        acceleration = maxSpeed / accelerationTime;
+        deceleration = maxSpeed / decelerationTime;
+    }
 
     void Update()
     {
-        EnemyRadar(radius, circlePoints);
-        PlayerMovement();
+        Vector2 currentInput = Vector2.zero;
+        if (Input.GetKey(KeyCode.LeftArrow))
+        {
+            currentInput += Vector2.left;
+        }
+        if (Input.GetKey(KeyCode.RightArrow))
+        {
+            currentInput += Vector2.right;
+        }
+        if (Input.GetKey(KeyCode.UpArrow))
+        {
+            currentInput += Vector2.up;
+        }
+        if (Input.GetKey(KeyCode.DownArrow))
+        {
+            currentInput += Vector2.down;
+        }
+
+        if(currentInput.magnitude > 0)
+        {
+            // Our character is accelerating
+            currentVelocity += acceleration * Time.deltaTime * (Vector3)currentInput.normalized;
+
+            if (currentVelocity.magnitude > maxSpeed)
+            {
+                currentVelocity = currentVelocity.normalized * maxSpeed;
+            }
+        }
+        else
+        {
+            // Our character is develerating
+            // Check to solve the problem with the rotation, if our player starts moving the opposite direction
+            Vector3 velocityDelta = (Vector3)currentVelocity.normalized * deceleration * Time.deltaTime;
+            if (velocityDelta.magnitude > currentVelocity.magnitude)
+            {
+                currentVelocity = Vector3.zero;
+            }
+            else
+            {
+                currentVelocity -= velocityDelta;
+            }
+        }
+        transform.position += currentVelocity * Time.deltaTime;
+
+        //PlayerMovement();
         DetectAsteroids(maxDetectionRange, asteroidTransforms);
         if (Input.GetKeyDown(KeyCode.R))
         {
             SpawnPowerups(radius, numberOfPowerups);
         }
+        // Why does the for loop stop everything after that?
+        EnemyRadar(radius, circlePoints);
+    }
+
+    public void KeelyPlayerMovement()
+    {
+
     }
     public void PlayerMovement()
     {
@@ -88,15 +156,21 @@ public class Player : MonoBehaviour
 
     public void EnemyRadar(float radius, int circlePoints)
     {
-        anglesList = new int[circlePoints];
+        anglesList = new int[circlePoints + 1];
 
         for (int i = 0; i < circlePoints; i++)
         {
-            anglesList[i] = 360 / circlePoints;
-            float endPointX = Mathf.Cos(anglesList[i] * Mathf.Deg2Rad);
-            float endPointY = Mathf.Sin(anglesList[i] * Mathf.Deg2Rad);
+            anglesList[i] = i * (360 / circlePoints);
+            float startPointX = Mathf.Cos(anglesList[i] * Mathf.Deg2Rad);
+            float startPointY = Mathf.Sin(anglesList[i] * Mathf.Deg2Rad);
+            Vector3 startingPoint = new Vector3(startPointX, startPointY) * radius + transform.position;
+
+            anglesList[i + 1] = (i + 1) * (360 / circlePoints);
+            float endPointX = Mathf.Cos(anglesList[i + 1] * Mathf.Deg2Rad);
+            float endPointY = Mathf.Sin(anglesList[i + 1] * Mathf.Deg2Rad);
             Vector3 endingPoint = new Vector3(endPointX, endPointY) * radius + transform.position;
-            Debug.DrawLine(transform.position, endingPoint, Color.red);
+
+            Debug.DrawLine(startingPoint, endingPoint, Color.red);
         }
     }
 
