@@ -28,7 +28,7 @@ public class RotationTest : MonoBehaviour
         //targetAngle = (Mathf.Atan2(targetTransform.transform.position.x - transform.position.x,
         //                           targetTransform.transform.position.y - transform.position.y) * Mathf.Rad2Deg - 90f);
 
-        Debug.Log("targetAngle =" + targetAngle);
+        // Debug.Log("targetAngle =" + targetAngle);
 
         // eulerAngles are the rotation of the object in degrees
         // We get access to them using transform

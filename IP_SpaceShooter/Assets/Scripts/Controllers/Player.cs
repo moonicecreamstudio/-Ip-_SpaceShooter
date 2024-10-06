@@ -1,21 +1,21 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq.Expressions;
-using Unity.Plastic.Newtonsoft.Json.Bson;
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEngine.InputSystem;
 
 public class Player : MonoBehaviour
 {
+    PlayerControls controls;
 
     public List<Transform> asteroidTransforms;
     public Transform enemyTransform;
     public GameObject bombPrefab;
     public GameObject powerupPrefab;
     public float movementSpeed = 0f;
-    float maxMovementSpeed = 5f;
-    float deacceleration = -2f;
+    float maxMovementSpeed = 7.5f;
+    float deacceleration = -3f;
     public float maxDetectionRange;
     public float radarLength;
 
@@ -41,6 +41,29 @@ public class Player : MonoBehaviour
     public float decelerationTime;
     private float deceleration;
 
+    public bool isAccelerating = false;
+    public bool isDecelerating;
+
+    Vector2 move;
+
+    void Awake()
+    {
+        controls = new PlayerControls();
+
+        controls.Gameplay.Movement.performed += ctx => move = ctx.ReadValue<Vector2>();
+        controls.Gameplay.Movement.canceled += ctx => move = Vector2.zero;
+    }
+
+    private void OnEnable()
+    {
+        controls.Gameplay.Enable();
+    }
+
+    private void OnDisable()
+    {
+        controls.Gameplay.Disable();
+    }
+
     void Start()
     {
         acceleration = maxSpeed / accelerationTime;
@@ -48,6 +71,78 @@ public class Player : MonoBehaviour
     }
 
     void Update()
+    {
+        // PlayerMovement();
+
+        // KeelyPlayerMovement();
+
+        ControllerMovement();
+
+        DetectAsteroids(maxDetectionRange, asteroidTransforms);
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            SpawnPowerups(radius, numberOfPowerups);
+        }
+
+        if (Input.GetKeyDown(KeyCode.T))
+        {
+            StartCoroutine(PlayHaptics(2f));
+        }
+
+
+        //if (controls.Gameplay.Movement.triggered == false)
+        //{
+        //    if (movementSpeed >= 0)
+        //    {
+        //        movementSpeed += deacceleration * Time.deltaTime;
+        //    }
+        //    Vector2 m = new Vector2(move.x, move.y) * movementSpeed * Time.deltaTime;
+        //    transform.Translate(m);
+        //    Debug.Log("Decceleration.");
+        //}
+
+        // Why does the for loop stop everything after that?
+        EnemyRadar(radius, circlePoints);
+    }
+
+    //public void ControllerMovement()
+    //{
+    //    Vector2 m = new Vector2(move.x, move.y) * Time.deltaTime;
+    //    transform.Translate(m);
+    //}
+
+        public void ControllerMovement()
+    {
+        if (move != Vector2.zero)
+        {
+            if (movementSpeed < maxMovementSpeed)
+            {
+                movementSpeed += acceleration * Time.deltaTime;
+            }
+        }
+        else
+        {
+            if (movementSpeed >= 0.2)
+            {
+                movementSpeed += deacceleration * Time.deltaTime;
+            }
+        }
+        Vector2 m = new Vector2(move.x, move.y) * movementSpeed * Time.deltaTime;
+        transform.Translate(m);
+        Debug.Log("Acceleration.");
+    }
+
+    //public void Accelerating(InputAction.CallbackContext ctx)
+    //{
+    //    isAccelerating = true;
+    //    if (isAccelerating == true)
+    //    {
+    //        Debug.Log("Acceleration.");
+    //    }
+    //    isAccelerating = false;
+    //}
+
+        public void KeelyPlayerMovement()
     {
         Vector2 currentInput = Vector2.zero;
         if (Input.GetKey(KeyCode.LeftArrow))
@@ -67,7 +162,7 @@ public class Player : MonoBehaviour
             currentInput += Vector2.down;
         }
 
-        if(currentInput.magnitude > 0)
+        if (currentInput.magnitude > 0)
         {
             // Our character is accelerating
             currentVelocity += acceleration * Time.deltaTime * (Vector3)currentInput.normalized;
@@ -92,20 +187,6 @@ public class Player : MonoBehaviour
             }
         }
         transform.position += currentVelocity * Time.deltaTime;
-
-        //PlayerMovement();
-        DetectAsteroids(maxDetectionRange, asteroidTransforms);
-        if (Input.GetKeyDown(KeyCode.R))
-        {
-            SpawnPowerups(radius, numberOfPowerups);
-        }
-        // Why does the for loop stop everything after that?
-        EnemyRadar(radius, circlePoints);
-    }
-
-    public void KeelyPlayerMovement()
-    {
-
     }
     public void PlayerMovement()
     {
@@ -182,16 +263,26 @@ public class Player : MonoBehaviour
 
         for (int i = 0; i < numberOfPowerups; i++)
         {
-            powerupsAnglesList[i] = 360 / numberOfPowerups;
-            float endPointX = Mathf.Cos(powerupsAnglesList[i] * Mathf.Deg2Rad);
-            float endPointY = Mathf.Sin(powerupsAnglesList[i] * Mathf.Deg2Rad);
-            powerupsAnglesList2[i] = new Vector3(endPointX, endPointY) * radius + transform.position;
-            for (int j = 0; j < numberOfPowerups; j++)
-            {
-                Instantiate(powerupPrefab, powerupsAnglesList2[i], Quaternion.identity);
-            }
+            anglesList[i] = i * (360 / circlePoints);
+            float startPointX = Mathf.Cos(anglesList[i] * Mathf.Deg2Rad);
+            float startPointY = Mathf.Sin(anglesList[i] * Mathf.Deg2Rad);
+            Vector3 startingPoint = new Vector3(startPointX, startPointY) * radius + transform.position;
+
+            anglesList[i + 1] = (i + 1) * (360 / circlePoints);
+            float endPointX = Mathf.Cos(anglesList[i + 1] * Mathf.Deg2Rad);
+            float endPointY = Mathf.Sin(anglesList[i + 1] * Mathf.Deg2Rad);
+            Vector3 endingPoint = new Vector3(endPointX, endPointY) * radius + transform.position;
+
+            Instantiate(powerupPrefab, powerupsAnglesList2[i], Quaternion.identity);
         }
 
+    }
+
+    IEnumerator PlayHaptics(float seconds)
+    {
+        Gamepad.current.SetMotorSpeeds(0.25f, 0.25f);
+        yield return new WaitForSeconds(seconds);
+        InputSystem.ResetHaptics();
     }
 
 }

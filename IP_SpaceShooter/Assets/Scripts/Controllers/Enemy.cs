@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
 using static UnityEngine.GraphicsBuffer;
-using Codice.CM.Common;
 
 public class Enemy : MonoBehaviour
 {

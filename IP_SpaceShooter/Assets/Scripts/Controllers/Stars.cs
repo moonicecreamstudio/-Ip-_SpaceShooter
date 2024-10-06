@@ -32,7 +32,7 @@ public class Stars : MonoBehaviour
             }
             timer = 0;
         }
-        DrawLine();
+        // DrawLine();
     }
 
     public void DrawLine()
