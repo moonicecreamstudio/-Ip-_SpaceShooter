@@ -46,6 +46,8 @@ public class Player : MonoBehaviour
 
     Vector2 move;
 
+    private Vector2 movementInput;
+
     void Awake()
     {
         controls = new PlayerControls();
@@ -76,7 +78,9 @@ public class Player : MonoBehaviour
 
         // KeelyPlayerMovement();
 
-        ControllerMovement();
+        // ControllerMovement();
+
+        transform.Translate(new Vector3(movementInput.x, movementInput.y, 0) * movementSpeed * Time.deltaTime);
 
         DetectAsteroids(maxDetectionRange, asteroidTransforms);
         if (Input.GetKeyDown(KeyCode.R))
@@ -111,7 +115,9 @@ public class Player : MonoBehaviour
     //    transform.Translate(m);
     //}
 
-        public void ControllerMovement()
+    public void OnMove(InputAction.CallbackContext ctx) => movementInput = ctx.ReadValue<Vector2>();
+
+    public void ControllerMovement()
     {
         if (move != Vector2.zero)
         {
