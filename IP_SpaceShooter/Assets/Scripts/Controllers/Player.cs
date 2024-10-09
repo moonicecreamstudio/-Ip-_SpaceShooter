@@ -7,6 +7,13 @@ using UnityEngine.InputSystem;
 
 public class Player : MonoBehaviour
 {
+    // THIS SCRIPT WILL NOT BE USED.
+    // PLEASE REFER TO PlayerControler SCRIPT INSTEAD.
+    // ONLY USED FOR NOTES AND REFERENCES FOR THE FUTURE.
+    // WARNING.
+    // IT IS A DISGUSTING MESS.
+
+
     PlayerControls controls;
 
     public List<Transform> asteroidTransforms;

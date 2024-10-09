@@ -8,13 +8,12 @@ using UnityEngine.InputSystem;
 public class PlayerController : MonoBehaviour
 {
     PlayerControls controls;
-
     private float movementSpeed = 5.0f;
     public SpriteRenderer spriteRenderer;
     public Sprite[] spriteArray;
     private GameObject playerManagerObject;
     private PlayerManager playerManager;
-    private int playerNumber;
+    public int playerNumber;
 
     private Vector2 movementInput;
 
@@ -22,6 +21,8 @@ public class PlayerController : MonoBehaviour
     {
         controls = new PlayerControls();
     }
+
+    // Stuff that needs to be used in order to have Unity's New Input System working.
 
     private void OnEnable()
     {
@@ -35,6 +36,9 @@ public class PlayerController : MonoBehaviour
 
     void Start()
     {
+        // This section here is coded specifically for Game Objects that does not exist in the scene, but will be instantiated.
+        // By using FindWithTag, this allows for instatiated Game Objects to find the scripts and other Game Objects required for stuff like SendMessage to work.
+
         playerManagerObject = GameObject.FindWithTag("PlayerManager");
         if (playerManager == null)
         {
@@ -43,6 +47,8 @@ public class PlayerController : MonoBehaviour
         playerManager.SendMessage("PlayerJoined", SendMessageOptions.DontRequireReceiver);
 
         spriteRenderer = GetComponentInChildren<SpriteRenderer>();
+
+        // Player order.
 
         if (playerManager.playerCount == 0)
         {
@@ -53,6 +59,16 @@ public class PlayerController : MonoBehaviour
             playerNumber = 2;
         }
 
+        // This is here because in the case that both players die at the same time, or if Player 2 dies right after Player 1 dies.
+        // It's a quick janky fix, that would need a better implementation if done properly.
+
+        if (playerManager.playerCount == 2)
+        {
+            playerNumber = 1;
+        }
+
+        // Assigning the correct sprites to the player.
+
         if (playerNumber == 1)
         {
             spriteRenderer.sprite = spriteArray[0];
@@ -61,7 +77,6 @@ public class PlayerController : MonoBehaviour
         {
             spriteRenderer.sprite = spriteArray[1];
         }
-
     }
 
     void Update()
@@ -69,8 +84,25 @@ public class PlayerController : MonoBehaviour
         transform.Translate(new Vector3(movementInput.x, movementInput.y, 0) * movementSpeed * Time.deltaTime);
 
         controls.Gameplay.Shoot.performed += ctx => Shoot();
+
+        if (Input.GetKeyDown(KeyCode.T))
+        {
+            if (playerNumber == 1)
+            {
+                Debug.Log("Player 1 was destroyed!");
+                playerManager.playerCount = -1;
+                Destroy(gameObject);
+            }
+            if (playerNumber == 2)
+            {
+                Debug.Log("Player 2 was destroyed!");
+                playerManager.playerCount = 0;
+                Destroy(gameObject);
+            }
+        }
     }
 
+    // Very basic controls.
     public void OnMove(InputAction.CallbackContext ctx) => movementInput = ctx.ReadValue<Vector2>();
 
     public void Shoot()
@@ -78,6 +110,7 @@ public class PlayerController : MonoBehaviour
         StartCoroutine(PlayHaptics(0.5f));
     }
 
+    // Allows to play haptic feedback with the use of Couroutines.
     IEnumerator PlayHaptics(float seconds)
     {
         Gamepad.current.SetMotorSpeeds(0.25f, 0.25f);

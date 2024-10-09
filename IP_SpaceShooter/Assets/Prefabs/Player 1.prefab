@@ -50,6 +50,7 @@ MonoBehaviour:
   spriteArray:
   - {fileID: 21300000, guid: 6c79a432b4013424581d393ffe467024, type: 3}
   - {fileID: 21300000, guid: 497db9a684eb1074e87f3728a159378d, type: 3}
+  playerNumber: 0
 --- !u!114 &4522329292669762244
 MonoBehaviour:
   m_ObjectHideFlags: 0

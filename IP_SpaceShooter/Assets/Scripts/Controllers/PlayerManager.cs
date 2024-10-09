@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class PlayerManager : MonoBehaviour
 {
-    public int playerCount;
+    public int playerCount = -1;
 
     // Start is called before the first frame update
     void Start()
@@ -16,11 +16,14 @@ public class PlayerManager : MonoBehaviour
     void Update()
     {
         Debug.Log(playerCount);
-
+        if (playerCount == 2)
+        {
+            playerCount = 0;
+        }
     }
 
     public void PlayerJoined()
     {
-        playerCount++;
+        playerCount ++;
     }
 }
