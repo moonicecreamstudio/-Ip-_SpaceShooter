@@ -6,19 +6,15 @@ public class Asteroid : MonoBehaviour
 {
     public float moveSpeed;
     float arrivalDistance = 1f;
-    float movementSpeed = 0.5f;
+    float movementSpeed = 0.2f;
     float maxFloatDistance = 10f;
     float minFloatDistance = 2f;
     public Vector3 randomPoint;
     bool pointFound = false;
     float asteroidToRandomPoint;
+    float screenHeight = 10;
+    float screenWidgth = 18;
 
-    // Start is called before the first frame update
-    void Start()
-    {
-    }
-
-    // Update is called once per frame
     void Update()
     {
         AsteroidMovement();
@@ -26,8 +22,6 @@ public class Asteroid : MonoBehaviour
 
     public void AsteroidMovement()
     {
-
-        var step = movementSpeed * Time.deltaTime;
         // Randomly creates a point within a square radius from the transform position of the asteroid.
         if (pointFound == false)
         {
@@ -36,11 +30,14 @@ public class Asteroid : MonoBehaviour
             asteroidToRandomPoint = Vector3.Distance(transform.position, randomPoint);
         }
 
-        if (asteroidToRandomPoint < maxFloatDistance && asteroidToRandomPoint > minFloatDistance)
+        if (asteroidToRandomPoint < maxFloatDistance && asteroidToRandomPoint > minFloatDistance &&
+            randomPoint.x < screenWidgth && randomPoint.x > -screenWidgth &&
+            randomPoint.y < screenHeight && randomPoint.y > -screenHeight)
         {
             pointFound = true;
             if (transform.position != randomPoint)
             {
+                var step = movementSpeed * Time.deltaTime;
                 transform.position = Vector3.MoveTowards(transform.position, randomPoint, step);
             }
             if (Vector3.Distance(transform.position, randomPoint) < arrivalDistance)

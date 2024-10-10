@@ -11,6 +11,7 @@ public class Moon : MonoBehaviour
     public float radius;
     public Vector3 offset;
     private int currentAngleIndex = 0;
+    public float speed;
 
     // Start is called before the first frame update
     void Start()
@@ -21,7 +22,7 @@ public class Moon : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        OrbitalMotion(radius, 5f, planetTransform);
+        OrbitalMotion(radius, speed, planetTransform);
     }
 
     public void OrbitalMotion(float radius, float speed, Transform target)

@@ -7,6 +7,12 @@ TagManager:
   - Player 1
   - Player 2
   - PlayerManager
+  - Asteroid
+  - Missile
+  - Spawn1
+  - Spawn2
+  - Spawn3
+  - Spawn4
   layers:
   - Default
   - TransparentFX
@@ -16,8 +22,8 @@ TagManager:
   - UI
   - 
   - 
-  - 
-  - 
+  - Asteroid
+  - Missile
   - 
   - 
   - 
