@@ -147,7 +147,7 @@ public class PlayerController : MonoBehaviour
     {
         if (shootInput == 1 && missileCooldown == false)
         {
-            Instantiate(missile, child.transform.position + (child.transform.up * 2.0f), child.transform.rotation);
+            Instantiate(missile, child.transform.position + (child.transform.up * 1.5f), child.transform.rotation);
             missileCooldown = true;
         }
         if (shootInput == 0)
