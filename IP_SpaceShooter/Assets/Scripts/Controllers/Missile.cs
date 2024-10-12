@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static Codice.Client.Common.EventTracking.TrackFeatureUseEvent.Features.DesktopGUI.Filters;
 
 public class Missile : MonoBehaviour
 {
@@ -10,14 +11,21 @@ public class Missile : MonoBehaviour
     public GameObject asteroid;
     float screenHeight = 11;
     float screenWidth = 19;
-    bool cannotHarmPlayer = true;
-    float timer;
-    float invulTime = 1.5f;
+    // bool cannotHarmPlayer = true;
+    // float timer;
+    // float invulTime = 1.5f;
+    bool affectedByGravity = false;
+    public GameObject planet;
+    public float gravitySpeed;
 
     // Start is called before the first frame update
     void Start()
     {
         missile = GetComponent<Rigidbody2D>();
+        if (planet == null)
+        {
+            planet = GameObject.FindWithTag("Planet");
+        }
     }
 
     // Update is called once per frame
@@ -39,6 +47,8 @@ public class Missile : MonoBehaviour
         float facingAngle = Mathf.Atan2(currentFacingDirection.y, currentFacingDirection.x) * Mathf.Rad2Deg;
 
         missile.velocity = transform.up * (speed * Time.deltaTime);
+
+        GravitationalPull();
 
         OutOfBound();
     }
@@ -83,6 +93,29 @@ public class Missile : MonoBehaviour
         if (transform.position.x < -screenWidth)
         {
             Destroy(gameObject);
+        }
+    }
+
+    public void InsideGravity()
+    {
+        affectedByGravity = true;
+    }
+    public void OutsideGravity()
+    {
+        affectedByGravity = false;
+    }
+    public void GravitationalPull()
+    {
+        if (affectedByGravity == true)
+        {
+            float currentTravellingAngle = transform.rotation.z;
+            Vector3 missileCurrentPositionInRadius = transform.position;
+            float angleOfMissileToPlanet = Mathf.Atan2(missileCurrentPositionInRadius.y - planet.transform.position.y, missileCurrentPositionInRadius.x - planet.transform.position.x) * Mathf.Rad2Deg;
+            float targetAngle = (angleOfMissileToPlanet + 90);
+
+            float targetCurrentAngle = Mathf.DeltaAngle(currentTravellingAngle, targetAngle);
+            float angle = Mathf.MoveTowardsAngle(transform.eulerAngles.z, targetCurrentAngle, gravitySpeed * Time.deltaTime);
+            transform.eulerAngles = new Vector3(0, 0, angle);
         }
     }
 }

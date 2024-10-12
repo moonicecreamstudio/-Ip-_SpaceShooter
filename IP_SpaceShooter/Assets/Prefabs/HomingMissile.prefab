@@ -47,8 +47,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 90b00a7df36e96f42ba19b80974375c6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speed: 500
+  speed: 1000
   asteroid: {fileID: 7969683946929540427, guid: 462add3d0f7c62a4682e9c053b00ec93, type: 3}
+  planet: {fileID: 0}
+  gravitySpeed: 125
 --- !u!50 &7623506268711537231
 Rigidbody2D:
   serializedVersion: 4

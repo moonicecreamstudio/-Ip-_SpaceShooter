@@ -13,6 +13,7 @@ TagManager:
   - Spawn2
   - Spawn3
   - Spawn4
+  - Planet
   layers:
   - Default
   - TransparentFX

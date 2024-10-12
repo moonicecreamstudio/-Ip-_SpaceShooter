@@ -22,11 +22,13 @@ public class PlayerController : MonoBehaviour
     float desiredAngle;
     float desiredAngleUp;
 
+    bool shootingButton = false;
 
     private Vector2 movementInput;
     private Vector2 rotateInput;
     private float shootInput;
-    private bool missileCooldown = false;
+    private float shootingCooldownTimer;
+    private bool shootingOK = true;
 
     void Awake()
     {
@@ -145,14 +147,28 @@ public class PlayerController : MonoBehaviour
 
     public void ShootingControls()
     {
-        if (shootInput == 1 && missileCooldown == false)
+        if (shootingCooldownTimer == 0)
+        {
+            shootingOK = true;
+            shootingCooldownTimer += Time.deltaTime;
+        }
+        if (shootingOK == false)
+        {
+            shootingCooldownTimer += Time.deltaTime;
+            if (shootingCooldownTimer > 0.5f)
+            {
+                shootingCooldownTimer = 0;
+            }
+        }
+        if (shootInput == 1 && shootingButton == false && shootingOK == true)
         {
             Instantiate(missile, child.transform.position + (child.transform.up * 1.5f), child.transform.rotation);
-            missileCooldown = true;
+            shootingButton = true;
+            shootingOK = false;
         }
         if (shootInput == 0)
         {
-            missileCooldown = false;
+            shootingButton = false;
         }
     }
 
