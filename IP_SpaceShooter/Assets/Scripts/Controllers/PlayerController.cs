@@ -4,6 +4,8 @@ using System.Linq.Expressions;
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
+using System.Reflection;
 
 public class PlayerController : MonoBehaviour
 {
@@ -14,21 +16,37 @@ public class PlayerController : MonoBehaviour
     public GameObject[] spawnArray;
     private GameObject playerManagerObject;
     private PlayerManager playerManager;
+    private ScoreManager scoreManager;
     public int playerNumber;
     float screenHeight = 10;
     float screenWidth = 18;
-    public GameObject missile;
+    public GameObject missileRed;
+    public GameObject missileBlue;
     public GameObject child;
     float desiredAngle;
     float desiredAngleUp;
+    public GameObject blackHole;
+    public int playerHealth = 3;
+    public GameObject explosionRed;
+    public GameObject explosionBlue;
+    bool deathAnimation = false;
+    bool disableControls = false;
 
     bool shootingButton = false;
+    float deathTimer;
 
     private Vector2 movementInput;
     private Vector2 rotateInput;
     private float shootInput;
     private float shootingCooldownTimer;
     private bool shootingOK = true;
+
+    private bool suction = false;
+    bool explosionCheck = false;
+    public float suctionSpeed;
+    private float opacity;
+
+    public GameObject triangle;
 
     void Awake()
     {
@@ -49,10 +67,13 @@ public class PlayerController : MonoBehaviour
 
     void Start()
     {
+        InputSystem.ResetHaptics();
         spawnArray[0] = GameObject.FindWithTag("Spawn1");
         spawnArray[1] = GameObject.FindWithTag("Spawn2");
         spawnArray[2] = GameObject.FindWithTag("Spawn3");
         spawnArray[3] = GameObject.FindWithTag("Spawn4");
+
+        blackHole = GameObject.FindWithTag("BlackHoleRadius");
 
         transform.position = spawnArray[Random.Range(0,4)].transform.position;
 
@@ -68,6 +89,12 @@ public class PlayerController : MonoBehaviour
         {
             playerManager = playerManagerObject.GetComponent<PlayerManager>();
         }
+
+        if (scoreManager == null)
+        {
+            scoreManager = playerManagerObject.GetComponent<ScoreManager>();
+        }
+
         playerManager.SendMessage("PlayerJoined", SendMessageOptions.DontRequireReceiver);
 
         spriteRenderer = GetComponentInChildren<SpriteRenderer>();
@@ -96,20 +123,34 @@ public class PlayerController : MonoBehaviour
         if (playerNumber == 1)
         {
             spriteRenderer.sprite = spriteArray[0];
+            triangle.GetComponent<Renderer>().material.color = new Color(0, 0, 1, 1);
+            scoreManager.SendMessage("Player1ResetHealth", SendMessageOptions.DontRequireReceiver);
+            scoreManager.SendMessage("ShowPlayer1Health", SendMessageOptions.DontRequireReceiver);
+            scoreManager.SendMessage("HidePlayer1Start", SendMessageOptions.DontRequireReceiver);
         }
         if (playerNumber == 2)
         {
             spriteRenderer.sprite = spriteArray[1];
+            triangle.GetComponent<Renderer>().material.color = new Color(1, 0, 0, 1);
+            scoreManager.SendMessage("Player2ResetHealth", SendMessageOptions.DontRequireReceiver);
+            scoreManager.SendMessage("ShowPlayer2Health", SendMessageOptions.DontRequireReceiver);
+            scoreManager.SendMessage("HidePlayer2Start", SendMessageOptions.DontRequireReceiver);
         }
     }
 
     void Update()
     {
-        transform.Translate(new Vector3(movementInput.x, movementInput.y, 0) * movementSpeed * Time.deltaTime);
+        if (disableControls == false)
+        {
+            transform.Translate(new Vector3(movementInput.x, movementInput.y, 0) * movementSpeed * Time.deltaTime);
 
-        RotationControls();
-        ShootingControls();
+            RotationControls();
+            ShootingControls();
+        }
         OutOfBounds();
+        BlackHoleSuction();
+        Dead();
+        DeathAnimation();
     }
 
     // Ccontrols.
@@ -122,7 +163,7 @@ public class PlayerController : MonoBehaviour
     // Allows to play haptic feedback with the use of Couroutines.
     IEnumerator PlayHaptics(float seconds)
     {
-        Gamepad.current.SetMotorSpeeds(0.25f, 0.25f);
+        Gamepad.current.SetMotorSpeeds(0.5f, 0.5f);
         yield return new WaitForSeconds(seconds);
         InputSystem.ResetHaptics();
     }
@@ -162,7 +203,14 @@ public class PlayerController : MonoBehaviour
         }
         if (shootInput == 1 && shootingButton == false && shootingOK == true)
         {
-            Instantiate(missile, child.transform.position + (child.transform.up * 1.5f), child.transform.rotation);
+            if (playerNumber == 1)
+            {
+                Instantiate(missileBlue, child.transform.position + (child.transform.up * 1.5f), child.transform.rotation);
+            }
+            if (playerNumber == 2)
+            {
+                Instantiate(missileRed, child.transform.position + (child.transform.up * 1.5f), child.transform.rotation);
+            }
             shootingButton = true;
             shootingOK = false;
         }
@@ -193,22 +241,106 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    public void BlackHoleSuction()
+    {
+        if (suction == true)
+        {
+            var step = suctionSpeed * Time.deltaTime;
+            transform.position = Vector3.MoveTowards(transform.position, blackHole.transform.position, step);
+        }
+    }
+    public void CenterSucked()
+    {
+        if (playerNumber == 1)
+        {
+            playerHealth -= 3;
+            scoreManager.SendMessage("Player1TakeDamage", 3, SendMessageOptions.DontRequireReceiver);
+        }
+        if (playerNumber == 2)
+        {
+            playerHealth -= 3;
+            scoreManager.SendMessage("Player2TakeDamage", 3, SendMessageOptions.DontRequireReceiver);
+        }
+    }
+
+    public void Dead()
+    {
+        if (playerHealth <= 0)
+        {
+            if (playerNumber == 1)
+            {
+                Debug.Log("Player 1 was destroyed!");
+                playerManager.playerCount = -1;
+                if (explosionCheck == false)
+                {
+                    Instantiate(explosionBlue, transform.position, Quaternion.identity);
+                    explosionCheck = true;
+                }
+                deathAnimation = true;
+            }
+            if (playerNumber == 2)
+            {
+                Debug.Log("Player 2 was destroyed!");
+                playerManager.playerCount = 0;
+                if (explosionCheck == false)
+                {
+                    Instantiate(explosionRed, transform.position, Quaternion.identity);
+                    explosionCheck = true;
+                }
+                deathAnimation = true;
+            }
+        }
+    }
+
+    public void DeathAnimation()
+    {
+        if (deathAnimation == true)
+        {
+            disableControls = true;
+            deathTimer = deathTimer + Time.deltaTime;
+
+            opacity = opacity + Time.deltaTime;
+            spriteRenderer.color = new Color(1f, 1f, 1f, 1f - opacity);
+
+            if (playerNumber == 1)
+            {
+                triangle.GetComponent<Renderer>().material.color = new Color(0, 0, 1f, 1f - opacity);
+            }
+            if (playerNumber == 2)
+            {
+                triangle.GetComponent<Renderer>().material.color = new Color(1f, 0, 0, 1f - opacity);
+            }
+
+            if (deathTimer > 2)
+            {
+                Destroy(gameObject);
+            }
+        }
+    }
+
     public void Hurt()
     {
         if (playerNumber == 1)
         {
-            //StartCoroutine(PlayHaptics(0.5f));
-            Debug.Log("Player 1 was destroyed!");
-            playerManager.playerCount = -1;
-            Destroy(gameObject);
+            StartCoroutine(PlayHaptics(0.25f));
+            playerHealth -= 1;
+            scoreManager.SendMessage("Player1TakeDamage", 1, SendMessageOptions.DontRequireReceiver);
         }
         if (playerNumber == 2)
         {
-            //StartCoroutine(PlayHaptics(0.5f));
-            Debug.Log("Player 2 was destroyed!");
-            playerManager.playerCount = 0;
-            Destroy(gameObject);
+            StartCoroutine(PlayHaptics(0.25f));
+            playerHealth -= 1;
+            scoreManager.SendMessage("Player2TakeDamage", 1, SendMessageOptions.DontRequireReceiver);
         }
+    }
+
+    public void InsideGravity()
+    {
+        suction = true;
+    }
+    public void OutsideGravity()
+    {
+        suction = false;
     }
 
 }

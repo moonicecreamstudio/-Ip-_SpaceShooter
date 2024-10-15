@@ -14,6 +14,8 @@ TagManager:
   - Spawn3
   - Spawn4
   - Planet
+  - BlackHoleRadius
+  - BlackHoleKill
   layers:
   - Default
   - TransparentFX
@@ -48,6 +50,15 @@ TagManager:
   - 
   - 
   m_SortingLayers:
+  - name: Background
+    uniqueID: 2631254619
+    locked: 0
+  - name: Background2
+    uniqueID: 3387823641
+    locked: 0
   - name: Default
     uniqueID: 0
+    locked: 0
+  - name: UI
+    uniqueID: 3832575937
     locked: 0

@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using static Codice.Client.Common.EventTracking.TrackFeatureUseEvent.Features.DesktopGUI.Filters;
 
 public class Missile : MonoBehaviour
 {
@@ -9,8 +8,8 @@ public class Missile : MonoBehaviour
     Rigidbody2D missile;
     Vector3 missileCollisionPosition;
     public GameObject asteroid;
-    float screenHeight = 11;
-    float screenWidth = 19;
+    float screenHeight = 27;
+    float screenWidth = 35;
     // bool cannotHarmPlayer = true;
     // float timer;
     // float invulTime = 1.5f;
@@ -31,9 +30,6 @@ public class Missile : MonoBehaviour
     // Update is called once per frame
     void FixedUpdate()
     {
-        // Disabling this because of issues with OnCollisionEnter2D
-        // Missiles is pushing player away if not immediately destroyed
-
         //if (timer < invulTime)
         //{
         //    timer += Time.deltaTime;
@@ -42,9 +38,6 @@ public class Missile : MonoBehaviour
         //{
         //    cannotHarmPlayer = false;
         //}
-
-        Vector3 currentFacingDirection = transform.up;
-        float facingAngle = Mathf.Atan2(currentFacingDirection.y, currentFacingDirection.x) * Mathf.Rad2Deg;
 
         missile.velocity = transform.up * (speed * Time.deltaTime);
 
@@ -55,7 +48,7 @@ public class Missile : MonoBehaviour
     // When a missile hits an asteroid, find the angle from the point it hit,
     // Take the angle it's travelling, subtract it by the angle from the asteroid point and the bullet point,
     // 
-    public void OnCollisionEnter2D(Collision2D other)
+    public void OnTriggerEnter2D(Collider2D other)
     {
         if (other.gameObject.tag == "Asteroid")
         {
@@ -103,6 +96,11 @@ public class Missile : MonoBehaviour
     public void OutsideGravity()
     {
         affectedByGravity = false;
+    }
+
+    public void CenterSucked()
+    {
+        Destroy(gameObject);
     }
     public void GravitationalPull()
     {
