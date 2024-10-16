@@ -52,12 +52,14 @@ public class Missile : MonoBehaviour
     {
         if (other.gameObject.tag == "Asteroid")
         {
-            float currentTravellingAngle = transform.rotation.z;
+            float currentTravellingAngle = transform.eulerAngles.z; // Oh my god, this was the issue transfomr.rotation.z is not what I wanted
             Vector3 asteroidPosition = other.transform.position;
             missileCollisionPosition = transform.position;
             float angleOfAsteroidToCollisionPoint = Mathf.Atan2(asteroidPosition.y - missileCollisionPosition.y, asteroidPosition.x - missileCollisionPosition.x) * Mathf.Rad2Deg;
-            float targetAngle = (angleOfAsteroidToCollisionPoint + 90) + currentTravellingAngle;
+            float targetAngle = (angleOfAsteroidToCollisionPoint + 90);
 
+            Debug.Log("currentTravellingAngle:" + currentTravellingAngle);
+            Debug.Log("targetAngle:" + targetAngle);
 
             transform.rotation = Quaternion.Euler(0,0, targetAngle);
         }
